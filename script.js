@@ -18,6 +18,7 @@ async function logIn() {
   atknABI = await atknABI.json();
 
   const atknContract = new ethers.Contract(atknAddress, atknABI, provider); // Connecting to the ATKN contract
+  console.log(atknContract);
 
   return { provider, signer, atknContract, atknABI };
 }
@@ -40,7 +41,7 @@ btnLogIn.addEventListener('click', async function () {
 });
 
 btnSend.addEventListener('click', async function () {
-  const { signer } = await logIn();
+  const { signer, atknContract } = await logIn();
   const senderAddress = await signer.getAddress();
 
   let addressAndValue = inputSend.value;
@@ -50,11 +51,18 @@ btnSend.addEventListener('click', async function () {
     return str.trim();
   });
 
-  // Submitting the transaction
-  const transaction = await signer.sendTransaction({
-    to: addressAndValue[0],
-    value: ethers.utils.parseEther(addressAndValue[1]),
-  });
+  // Submitting the transaction for BNB
+  // const transaction = await signer.sendTransaction({
+  //   to: addressAndValue[0],
+  //   value: ethers.utils.parseEther(addressAndValue[1]),
+  // });
+
+  // Submitting the transaction for ATKN
+  const atknContractSigner = atknContract.connect(signer);
+  const transaction = await atknContractSigner.transfer(
+    addressAndValue[0],
+    ethers.utils.parseEther(addressAndValue[1])
+  );
 
   responseTransaction.classList.remove('hidden');
   responseTransaction.textContent = `Sender Address: ${senderAddress}
